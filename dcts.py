@@ -54,57 +54,41 @@ class Dataset:
         return self.tokenize(text)
 
 if __name__ == '__main__':
+    f = ['anarcho_capitalism','conservative','libertarian','republican','the_donald','cringeanarchy']
+    for ff in f:
+        xx = [
+            f'data/2016-01-{ff}.tsv',
+            f'data/2016-02-{ff}.tsv',
+            f'data/2016-03-{ff}.tsv',
+            f'data/2016-04-{ff}.tsv',
+            f'data/2016-05-{ff}.tsv',
+            f'data/2016-06-{ff}.tsv',
+            f'data/2016-07-{ff}.tsv',
+            f'data/2016-08-{ff}.tsv',
+            f'data/2016-09-{ff}.tsv',
+            f'data/2016-10-{ff}.tsv',
+            f'data/2016-11-{ff}.tsv',
+            f'data/2016-12-{ff}.tsv'       
+        ]
 
-    xx = [
-        'data/2016-08-political_revolution.tsv',
-        'data/2016-09-political_revolution.tsv',
-        'data/2016-10-political_revolution.tsv',
-        'data/2016-11-political_revolution.tsv',
-        'data/2016-12-political_revolution.tsv'       
-    ]
+        for arg in xx:
+            print(arg)
+            d = Dataset(arg)
+            d.clean()
+            docs = d.df['body']
+            #bigrams = Phrases(docs, min_count=10)
+            #for idx in range(len(docs)):
+            #    for token in bigrams[docs[idx]]:
+            #        if '_' in token:
+            #            docs[idx].append(token)
+            dct = Dictionary(docs)
+            dct.filter_extremes(no_below=10, no_above=0.75)
+            bow = [dct.doc2bow(d) for d in docs]
 
-    for arg in xx:
-        print(arg)
-        d = Dataset(arg)
-        d.clean()
-        docs = d.df['body']
+            t0 = dct[0]
+            id2word = dct.id2token
 
-        #bigrams = Phrases(docs, min_count=10)
-        #for idx in range(len(docs)):
-        #    for token in bigrams[docs[idx]]:
-        #        if '_' in token:
-        #            docs[idx].append(token)
-
-        dct = Dictionary(docs)
-        dct.filter_extremes(no_below=10, no_above=0.75)
-        bow = [dct.doc2bow(d) for d in docs]
-
-        t0 = dct[0]
-        id2word = dct.id2token
-
-        #x = "Capitalism is evil."
-        #x = d.ext_clean(x)
-        #print(x)
-        #x_bow = dct.doc2bow(x)
-        #print(x_bow)
-
-        model = LdaMulticore(
-            workers=4,
-            corpus=bow,
-            id2word=id2word,
-            chunksize=1000,
-            iterations=50,
-            num_topics=10,
-            passes=20,
-            eval_every=None
-        )
-        
-        new_name = 'models' + str(arg).replace('political_revolution','sandersforpresident').replace('data','').replace('.tsv','')+'-model'
-        model.save(new_name, sep_limit=134217728)
-        
-        #top_topics = model.top_topics(bow) 
-        #x_val = model.get_document_topics([x_bow])
-        #pprint(top_topics)
-        #print(x_val)
-        #for i in x_val:
-        #    print(i)
+            new_name = 'models' + str(arg).replace('data','').replace('.tsv','')+'-dict'
+            dct.save(new_name, sep_limit=134217728)
+            del dct
+            del d
